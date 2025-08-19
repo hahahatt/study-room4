@@ -2,3 +2,4 @@
 /model/ner_model
 __pycache__/
 .git/
+.env
