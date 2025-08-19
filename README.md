@@ -18,3 +18,6 @@
 5. 위에 뜬 창에 다음의 값 입력 후 엔터 mongodb+srv://ehddnsdl35:<db_password>@insiderlock.nvk6wbj.mongodb.net/
 6. .env 파일 생성 후 디스코드에 있는 내용으로 env파일 내용 채우기
 7. 실행은 작업 폴더가 STUDY-ROOM4일 때 터미널 창에서 streamlit run ./streamlit/app.py 하시면 됩니다.
+
+
+

@@ -1,7 +1,38 @@
+# secrets
 .env
-model/
+.streamlit/secrets.toml
+
+# python caches / venv
 __pycache__/
-backend/ner_model/
-.git/
-.env
+*.py[cod]
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# node
 node_modules/
+
+# data & uploads (필요시)
+data/
+datasets/
+uploads/
+
+# === model weights (크고 이진) ===
+model/ner_model/
+backend/ner_model/
+*.pt
+*.pth
+*.bin
+*.onnx
+*.ckpt
+
+# notebooks cache
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
