@@ -1,5 +1,5 @@
 .env
-/model/ner_model
+ner_model/
 __pycache__/
 .git/
 .env
