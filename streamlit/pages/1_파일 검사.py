@@ -1,8 +1,31 @@
 import streamlit as st
 import re
 
-st.title("파일 검사")
+# ----- 접근 가드: 로그인 필수 -----
+if not st.session_state.get("authenticated"):
+    st.error("로그인이 필요합니다.")
+    try:
+        st.page_link("app.py", label="⬅️ 로그인 페이지로 이동")
+    except Exception:
+        pass
+    st.stop()
 
+# ----- 상단 바 -----
+top = st.columns([6, 2])
+with top[0]:
+    st.title("파일 검사")
+with top[1]:
+    st.caption(f"👤 {st.session_state.get('username','')}")
+    if st.button("로그아웃", use_container_width=True):
+        st.session_state.clear()
+        try:
+            st.switch_page("app.py")
+        except Exception:
+            st.success("로그아웃 되었습니다. 로그인 페이지로 돌아가세요.")
+            st.page_link("app.py", label="⬅️ 로그인 페이지")
+        st.stop()
+
+# ----------------- 본문 : 파일 검사  ---------------------------
 files = st.file_uploader("파일 업로드", accept_multiple_files=True, type=["txt"])
 if not files:
     st.caption("샘플: .txt 파일을 올려보세요 (주민번호, 이메일 탐지 예시).")
