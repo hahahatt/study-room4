@@ -56,9 +56,9 @@ if ok:
         st.success("로그인 성공! 대시보드로 이동합니다.")
         # 바로 페이지 전환 시도
         try:
-            st.switch_page("pages/01_Dashboard.py")
+            st.switch_page("pages/0_Home.py")
         except Exception:
-            st.page_link("pages/01_Dashboard.py", label="➡️ 대시보드로 이동")
+            st.page_link("pages/0_Home.py", label="➡️ 대시보드로 이동")
         st.stop()
     else:
         st.error("아이디 또는 비밀번호가 올바르지 않습니다.")
