@@ -1,5 +1,7 @@
 .env
-ner_model/
+model/
 __pycache__/
+backend/ner_model/
 .git/
 .env
+node_modules/
