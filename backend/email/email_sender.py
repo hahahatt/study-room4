@@ -111,7 +111,7 @@ def send_email_ui(credentials):
     body = st.text_area("본문 입력", placeholder="내용을 입력하세요", height=150)
     attachments = st.file_uploader(
         "📎 첨부파일 업로드",
-        type=["txt", "csv", "xlsx", "pdf", "docx", "hwp"],
+        type=["txt", "csv", "xlsx", "pdf", "docx", "hwp", "jpg","png"],
         accept_multiple_files=True
     )
 
