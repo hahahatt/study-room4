@@ -1,38 +1,57 @@
-# secrets
+# ── Secrets ─────────────────────────────────────────
 .env
 .streamlit/secrets.toml
+backend/email/credentials/client_secret.json
 
-# python caches / venv
+# ── Python ──────────────────────────────────────────
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+*.so
 .venv/
 venv/
 env/
 
-# IDE
-.vscode/
-.idea/
-
-# node
+# ── Node / Frontend ─────────────────────────────────
 node_modules/
+*.log
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# data & uploads (필요시)
+# ── Streamlit ───────────────────────────────────────
+.streamlit/cache/
+.streamlit/state/
+
+# ── Data / Uploads (필요시) ─────────────────────────
 data/
 datasets/
 uploads/
 
-# === model weights (크고 이진) ===
-model/ner_model/
+# ── Models & Checkpoints (대용량/이진) ──────────────
+# 모든 경로의 ner_model 폴더와 일반적인 가중치 파일들 제외
+**/ner_model/**
 backend/ner_model/
-*.pt
-*.pth
-*.bin
-*.onnx
-*.ckpt
+model/ner_model/
+**/pytorch_model.bin
+**/*.safetensors
+**/*.pt
+**/*.pth
+**/*.onnx
+**/*.ckpt
+**/tf_model.h5
+**/rust_model.ot
 
-# notebooks cache
+# (모델 압축 파일을 함께 제외하고 싶다면)
+model/ner_model.zip
+backend/model/ner_model.zip
+
+# ── Notebooks ───────────────────────────────────────
 .ipynb_checkpoints/
 
-# OS
+# ── IDE / OS ────────────────────────────────────────
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
