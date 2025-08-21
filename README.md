@@ -20,4 +20,7 @@
 7. 실행은 작업 폴더가 STUDY-ROOM4일 때 터미널 창에서 streamlit run ./streamlit/app.py 하시면 됩니다.
 
 
+# 3차 통합 이후
+1. ner_model은 backend 폴더에 넣어주시면 됩니다
+2. backend/credentials 폴더에 client_secret.json 파일 넣어주시면 됩니다. 해당 파일은 정희님이 디스코드에 올리신 통합.zip에 있습니다.
 
