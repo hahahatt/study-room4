@@ -122,7 +122,7 @@ def _count_with_ner_and_regex(text: str):
     return counts
 
 def summarize_email(subject: str, body: str, attachments) -> pd.DataFrame:
-    """스캔 요약본 표(DataFrame) 생성 — ✅ 첨부만 집계(본문 제외)"""
+    """스캔 요약본 표(DataFrame) 생성 — 첨부파일 내용으로만 집계(본문 제외)"""
     agg = {k: 0 for k in _PII_LABELS}
     for f in (attachments or []):
         try:

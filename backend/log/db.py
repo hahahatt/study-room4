@@ -29,7 +29,7 @@ def get_db():
 
 def get_file_logs_col():
     """
-    파일 로그 컬렉션을 '하나'로 통일해서 반환.
+    파일 로그 컬렉션을 하나로 통일해서 반환. 실수로 scan_logs랑 file_logs가 생김...
     우선순위:
       1) 환경변수 MONGO_FILELOGS_COLLECTION
       2) 환경변수 MONGO_SCANLOGS_COLLECTION (레거시)
@@ -50,6 +50,6 @@ def get_file_logs_col():
         return db["file_logs"]
     return db["scan_logs"]  # 기본을 scan_logs로
 
-# ✅ 레거시 호환: 예전 코드가 부르던 이름
+# 
 def get_scan_logs_col():
     return get_file_logs_col()

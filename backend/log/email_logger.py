@@ -7,8 +7,10 @@ import os
 from .db import get_db
 from pymongo.collection import Collection
 
+
 def _attachment_names(attachments):
     return [getattr(f, "name", "attachment.bin") for f in (attachments or [])]
+
 
 def _scan_summary_to_dict(df):
     if df is None:
@@ -18,6 +20,7 @@ def _scan_summary_to_dict(df):
     except Exception:
         try: return df.to_dict(orient="records")
         except Exception: return None
+
 
 def _get_sender_email(credentials) -> Optional[str]:
     try:
@@ -36,7 +39,6 @@ def _resolve_username_and_email(*, db, gmail_email: Optional[str]) -> tuple[str,
       2) users 컬렉션 조회 (username 또는 email로 조회) → username
       3) gmail_email의 로컬파트
       4) '사용자'
-    email은 가능한 한 gmail_email 또는 DB에서 찾은 email을 넣어둠.
     """
     username = None
     email = gmail_email

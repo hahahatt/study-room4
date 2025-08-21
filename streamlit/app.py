@@ -10,7 +10,7 @@ for p in [_here, *_here.parents]:
             sys.path.insert(0, str(p))
         break
 else:
-    # 디버깅용: 실패 시 경로 힌트 출력
+    # 디버깅용: 실패 시 현재 경로 출력
     print("[PathError] 'backend' 폴더를 찾지 못했습니다. 현재:", _here)
 # ----------------------------------------------------
 

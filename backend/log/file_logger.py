@@ -7,6 +7,7 @@ import os
 from .db import get_file_logs_col, get_db
 from pymongo.collection import Collection
 
+# Username을 기록하기 위해 사용자 식별 정보를 가져오는 헬퍼 함수
 def _resolve_user_identity(*, db, user_hint: Optional[str] = None) -> Dict[str, Optional[str]]:
     name = None
     email = None
@@ -51,7 +52,7 @@ def log_file_upload(
     content_type: Optional[str] = None,
     detected_pii: Optional[Dict[str, int]] = None,
     extra: Optional[Dict[str, Any]] = None,
-    has_pii: Optional[bool] = None,      # ✅ 새 인자 (에러 해결)
+    has_pii: Optional[bool] = None,      # 요청 인자 반영
 ) -> None:
     """
     파일 업로드/스캔 로그 저장 (컬렉션은 get_file_logs_col로 단일화)
@@ -71,7 +72,7 @@ def log_file_upload(
         "size": size,
         "content_type": content_type,
         "detected_pii": detected_pii or {},
-        "has_pii": bool(has_pii),          # ✅ 요청 인자 반영
+        "has_pii": bool(has_pii),          # 요청 인자 반영
         "extra": extra or {},
         "uploaded_at": datetime.now(ZoneInfo("Asia/Seoul")).isoformat(),
     }
@@ -91,7 +92,7 @@ def list_file_uploads(
     total = col.count_documents(f)
     return items, total
 
-# ✅ 레거시 API 호환 (1_파일 검사.py에서 사용)
+# 1_파일 검사.py에서 사용하는 레거시 API... 함수 명과 경로 문제가 계속 발생해 레거시 함수로 남김
 def log_scan(*, user: Optional[str], filename: str, detected_pii: Optional[Dict[str, int]] = None,
              size: Optional[int] = None, content_type: Optional[str] = None,
              extra: Optional[Dict[str, Any]] = None, has_pii: Optional[bool] = None) -> None:
