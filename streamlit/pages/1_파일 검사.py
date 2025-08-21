@@ -133,6 +133,7 @@ for f in files:
         if has_pii and masked_bytes is not None and masked_name:
             mime = mimetypes.guess_type(masked_name)[0] or "application/octet-stream"
             st.download_button("⬇️ 마스킹 파일 다운로드", data=masked_bytes, file_name=masked_name, mime=mime)
+
         elif not has_pii:
             st.caption("민감 정보가 없어 마스킹 없이 원본 유지")
 

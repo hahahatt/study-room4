@@ -107,7 +107,7 @@ with tab1:
         st.info("데이터가 없습니다. 필터를 조정해 보세요.")
     else:
         st.dataframe(df_email, use_container_width=True, hide_index=True)
-        st.download_button("CSV 다운로드(이메일)", data=df_email.to_csv(index=False), file_name="email_logs.csv", mime="text/csv")
+        st.download_button("CSV 다운로드(이메일)", data=df_email.to_csv(index=False).encode("utf-8-sig"), file_name="email_logs.csv", mime="text/csv")
 
     prev_col, page_col, next_col = st.columns([1,2,1])
     with prev_col:
