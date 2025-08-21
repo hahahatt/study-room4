@@ -20,6 +20,17 @@ show_logo(max_width=400, pad=2, compact=True)  # 크키, 여백 조절 가능
 st.set_page_config(page_title="이메일 검사 · InsiderLock", layout="wide")
 st.title("📧 이메일 검사 및 발송")
 
+
+# ----- 접근 가드: 로그인 필수 -----
+if not st.session_state.get("authenticated"):
+    st.error("로그인이 필요합니다.")
+    try:
+        st.page_link("app.py", label="⬅️ 로그인 페이지로 이동")
+    except Exception:
+        pass
+    st.stop()
+
+
 # Gmail 인증
 if "gmail_creds" not in st.session_state:
     st.session_state.gmail_creds = None

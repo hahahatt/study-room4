@@ -1,3 +1,20 @@
+# --- add project root to sys.path (robust) ---
+import sys
+from pathlib import Path
+
+_here = Path(__file__).resolve()
+# backend 폴더를 포함하는 상위 폴더를 자동 탐색
+for p in [_here, *_here.parents]:
+    if (p / "backend").exists():
+        if str(p) not in sys.path:
+            sys.path.insert(0, str(p))
+        break
+else:
+    # 디버깅용: 실패 시 경로 힌트 출력
+    print("[PathError] 'backend' 폴더를 찾지 못했습니다. 현재:", _here)
+# ----------------------------------------------------
+
+
 import os
 import streamlit as st
 from pymongo import MongoClient, ASCENDING
@@ -40,8 +57,12 @@ if st.session_state.get("authenticated"):
         st.page_link("pages/0_Home.py", label="➡️ 대시보드로 이동")
     st.stop()
 
+
+# 홈페이지 로고
+from backend.ui import show_logo
+show_logo(max_width=400, pad=2, compact=True)  # 크키, 여백 조절 가능
+
 # ----- 로그인 폼 -----
-st.title("🔒 내부자 보안 잠금")
 st.subheader("로그인")
 
 with st.form("login_form", clear_on_submit=False):

@@ -14,10 +14,19 @@ from backend.log import (
     list_file_logs, build_file_filter
 )
 
-
 # 홈페이지 로고
 from backend.ui import show_logo
 show_logo(max_width=400, pad=2, compact=True)  # 크키, 여백 조절 가능
+
+# ----- 접근 가드: 로그인 필수 -----
+if not st.session_state.get("authenticated"):
+    st.error("로그인이 필요합니다.")
+    try:
+        st.page_link("app.py", label="⬅️ 로그인 페이지로 이동")
+    except Exception:
+        pass
+    st.stop()
+
 
 st.set_page_config(page_title="로그 대시보드", layout="wide")
 st.title("이메일/파일 로그 대시보드")

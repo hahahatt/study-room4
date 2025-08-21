@@ -1,13 +1,26 @@
 # study-room4
 
 
-### 필요 라이브러리 설치
+### 필요 라이브러리 
 
-- 몽고 DB연결 및 UI/UX
-    - pip install streamlit pymongo[srv] python-dotenv
+streamlit>=1.34
+pymongo>=4.6
+python-dotenv>=1.0
+google-api-python-client>=2.130
+google-auth>=2.31
+google-auth-oauthlib>=1.2
+pandas>=2.2
+numpy>=1.26
+pillow>=10.3
+pytesseract>=0.3.10
+python-docx>=1.1
+openpyxl>=3.1
+pymupdf>=1.24          # PDF 처리(읽기/마스킹)
+opencv-python-headless>=4.10  # 이미지 전처리(서버/헤드리스 환경)
 
-- 마스킹 부분
-    - pip install torch transformers
+Tesseract : 
+Invoke-WebRequest -Uri https://github.com/tesseract-ocr/tessdata_best/raw/main/kor.traineddata `
+  -OutFile "C:\Program Files\Tesseract-OCR\tessdata\kor.traineddata"
 
 
 ### 몽고디비 연결 
