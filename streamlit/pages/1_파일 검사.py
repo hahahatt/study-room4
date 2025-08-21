@@ -2,18 +2,23 @@ import streamlit as st
 from io import BytesIO
 from pathlib import Path
 import sys
-
-import re
+import mimetypes
 
 # ----------------- import 경로 세팅 -----------------
-# 현재 파일: <root>/streamlit/pages/1_파일 검사.py
-# backend 폴더는 <root>/backend 에 있으므로 부모의 부모를 sys.path에 추가
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
-from backend.masking import run_masking_pipeline
-from backend.file_logger import log_scan
+# ✅ 이메일 페이지와 동일한 로직 직접 사용
+from backend.email.email_scanner import scan_email, summarize_email
+from backend.email.mask_attachments import mask_attachment
+from backend.log.file_logger import log_scan
+
+
+# 홈페이지 로고
+from backend.ui import show_logo
+show_logo(max_width=400, pad=2, compact=True)  # 크키, 여백 조절 가능
+
 
 
 # ----- 접근 가드: 로그인 필수 -----
@@ -40,61 +45,111 @@ with top[1]:
             st.page_link("app.py", label="⬅️ 로그인 페이지")
         st.stop()
 
-# ----------------- 본문 : 파일 검사  ---------------------------
-files = st.file_uploader("파일 업로드", accept_multiple_files=True, type=["txt"])
+# ----------------- 본문 : 파일 업로드 ---------------------------
+# ⬇️ 이메일 페이지와 동일하게, 다양한 첨부 타입 허용
+files = st.file_uploader(
+    "파일 업로드",
+    accept_multiple_files=True,
+    type=["txt", "csv", "docx", "pdf", "xlsx", "jpg", "jpeg", "png"]
+)
 if not files:
-    st.caption("샘플: .txt 파일을 올려보세요 (주민번호, 이메일 탐지 예시).")
+    st.caption("샘플: .txt, .docx, .pdf, .xlsx, 이미지 파일을 올려보세요.")
     st.stop()
 
 user = st.session_state.get("username", "test")
 
 # ----------------- 처리 -----------------
-results = []
+rows = []
 
 for f in files:
     filename = f.name
     suffix = Path(filename).suffix.lower()
 
-    # 텍스트 디코딩(utf-8 우선, 실패시 cp949 시도)
-    raw_bytes = f.read()
+    # 1) 스캔: 이메일 페이지와 같게 scan_email → warnings만 사용(본문은 공백)
     try:
-        text = raw_bytes.decode("utf-8")
-    except UnicodeDecodeError:
+        try: f.seek(0)
+        except Exception: pass
+        warnings, _masked_body = scan_email(subject="", body="", attachments=[f])
+    except Exception as e:
+        st.error(f"스캔 실패: {filename} — {e}")
+        continue
+
+    # 2) 요약표: summarize_email(첨부만) → dict로 변환
+    counts = {}
+    try:
+        try: f.seek(0)
+        except Exception: pass
+        df = summarize_email(subject="", body="", attachments=[f])
+        if df is not None:
+            counts = {str(row["항목"]): int(row["첨부"]) for _, row in df.iterrows()}
+    except Exception:
+        counts = {}
+
+    total = sum(counts.values()) if isinstance(counts, dict) else 0
+    has_pii = bool(warnings) or (total > 0)
+
+    # 3) 마스킹: 이메일 페이지와 동일—민감정보 있을 때만 첨부 마스킹 실행
+    masked_bytes = None
+    masked_name = None
+    if has_pii:
         try:
-            text = raw_bytes.decode("cp949")
-        except UnicodeDecodeError:
-            st.error(f"파일 인코딩을 알 수 없습니다: {filename}")
-            continue
+            try: f.seek(0)
+            except Exception: pass
+            mf = mask_attachment(f)  # BytesIO 반환(성공 시), 실패 시 None
+            if mf is not None:
+                masked_name = getattr(mf, "name", f"masked_{filename}") or f"masked_{filename}"
+                masked_bytes = mf.getvalue()
+        except Exception as e:
+            st.warning(f"마스킹 실패: {filename} — {e}")
 
-    # --- 마스킹 파이프라인(ML 자리) ---
-    masked_text, counts, has_pii = run_masking_pipeline(text)
-
-    # --- 로그 저장(Mongo) ---
+    # 4) 로그 저장 (파일 로그)
     try:
-        log_scan(filename=filename, has_pii=has_pii, user=user, counts=counts)
+        size = getattr(f, "size", None)
+        content_type = getattr(f, "type", None) or (mimetypes.guess_type(filename)[0] or "application/octet-stream")
+        log_scan(
+            filename=filename,
+            user=user,                 # logger가 DB에서 user_name 확정
+            detected_pii=counts,
+            has_pii=has_pii,
+            size=size,
+            content_type=content_type,
+        )
     except Exception as e:
         st.warning(f"로그 저장 실패: {e}")
 
-    # --- 다운로드 버튼 준비 ---
-    out_name = f"{Path(filename).stem}_masked{suffix}"
-    mime = "text/plain" if suffix == ".txt" else "text/csv"
-    data = masked_text.encode("utf-8")
-    buf = BytesIO(data)
+    # 5) 화면 출력
+    with st.expander(f"결과: {filename}", expanded=True):
+        # 이메일 페이지처럼 '요약표(첨부만)'을 보여줌
+        st.markdown("**스캔 요약본 (첨부만)**")
+        if df is not None and not df.empty:
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        else:
+            st.caption("요약 정보가 없습니다.")
 
-    # --- 화면 출력 ---
-    with st.expander(f"결과 미리보기: {filename}", expanded=True):
-        st.write(f"탐지 결과: **{'개인정보 있음' if has_pii else '없음'}**  |  이메일 {counts['email']}건, 주민번호 {counts['rrn']}건")
-        st.code(masked_text[:2000] if len(masked_text) > 2000 else masked_text, language="text")
-        st.download_button("⬇️ 마스킹 파일 다운로드", data=buf, file_name=out_name, mime=mime)
+        # 상태 표시
+        st.write(f"탐지 결과: **{'개인정보 있음' if has_pii else '없음'}**")
 
-    results.append({
+        # 다운로드(마스킹 성공 시에만 제공; 이메일 페이지와 동일한 정책)
+        if has_pii and masked_bytes is not None and masked_name:
+            mime = mimetypes.guess_type(masked_name)[0] or "application/octet-stream"
+            st.download_button("⬇️ 마스킹 파일 다운로드", data=masked_bytes, file_name=masked_name, mime=mime)
+        elif not has_pii:
+            st.caption("민감 정보가 없어 마스킹 없이 원본 유지")
+
+    # 요약 테이블용 간단 행
+    rows.append({
         "파일명": filename,
         "개인정보 유무": "있음" if has_pii else "없음",
-        "이메일 수": counts["email"],
-        "주민번호 수": counts["rrn"],
+        "총 검출 수": total,
+        "이메일": counts.get("이메일", 0),
+        "주민번호": counts.get("주민번호", 0),
+        "전화번호": counts.get("전화번호", 0),
+        "카드번호": counts.get("카드번호", 0),
+        "주소": counts.get("주소", 0),
+        "계좌번호": counts.get("계좌번호", 0),
     })
 
-# 간단 요약 테이블
-if results:
+# 간단 요약 테이블(여러 파일 업로드 시 모아보기)
+if rows:
     st.subheader("스캔 요약")
-    st.dataframe(results, use_container_width=True)
+    st.dataframe(rows, use_container_width=True, hide_index=True)

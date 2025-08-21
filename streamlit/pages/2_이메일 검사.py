@@ -12,6 +12,11 @@ if str(PROJECT_ROOT) not in sys.path:
 from backend.email.gmail_auth import authenticate_user
 from backend.email.email_sender import send_email_ui
 
+
+# 홈페이지 로고
+from backend.ui import show_logo
+show_logo(max_width=400, pad=2, compact=True)  # 크키, 여백 조절 가능
+
 st.set_page_config(page_title="이메일 검사 · InsiderLock", layout="wide")
 st.title("📧 이메일 검사 및 발송")
 

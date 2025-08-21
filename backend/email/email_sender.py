@@ -1,9 +1,14 @@
 import streamlit as st
+
+# 로그 전송 모듈 임포트
+from ..log.email_logger import log_email_send
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
 from email import encoders
+
 import base64
 import mimetypes
 from io import BytesIO
@@ -96,9 +101,13 @@ def send_email(credentials, to, subject, body, attachments=None):
         raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
         service.users().messages().send(userId="me", body={"raw": raw_message}).execute()
 
+        return True
+
     except Exception as e:
         import traceback
         st.error(f"❌ 메일 전송 실패:\n{traceback.format_exc()}")
+
+        return False
 
 
 # ─────────────────────────────────────
@@ -123,6 +132,9 @@ def send_email_ui(credentials):
         st.session_state.masked_body = ""
     if "last_inputs" not in st.session_state:
         st.session_state.last_inputs = {}
+    if "scan_summary_df" not in st.session_state:
+        st.session_state.scan_summary_df = None
+
 
     # 1) 탐지 후 전송 버튼
     if st.button("🔍 민감 정보 및 개인정보 탐지 후 전송합니다."):
@@ -147,7 +159,7 @@ def send_email_ui(credentials):
             st.dataframe(summary_df, use_container_width=True)
         except Exception:
             st.session_state.scan_summary_df = None
-            st.info("ℹ 스캔 요약본을 생성하지 못했습니다.")
+            st.info("스캔 요약본을 생성하지 못했습니다.")
 
         if warnings:
             st.warning("⚠️ 민감 정보가 감지되었습니다. 마스킹 후 전송을 원하시면 아래 버튼을 클릭하세요.")
@@ -187,26 +199,48 @@ def send_email_ui(credentials):
             # 경고 없음: 원문 본문 + 원본 첨부 그대로 전송
             if attachments:
                 for f in attachments:
-                    # ★ 추가: 전송 전에 포인터 초기화
                     try:
                         f.seek(0)
                     except Exception:
                         pass
-            send_email(credentials, to, subject, body, attachments)
+            success = send_email(credentials, to, subject, body, attachments)
+
+            if success:
+                log_email_send(
+                    credentials,
+                    to=to,
+                    subject=subject,
+                    body=body,                         # 원본 본문
+                    attachments=attachments,           # 원본 첨부
+                    scan_summary_df=st.session_state.scan_summary_df,  # 첨부만 집계 DF
+                    masked=False,
+                )
+
             st.success("✅ 민감 정보 없음: 이메일 전송 완료!")
 
     # 2) 마스킹 후 전송 계속
     if st.session_state.confirm_send:
         if st.button("📛 마스킹 후 전송 계속"):
             inputs = st.session_state.last_inputs
-            send_email(
+            success = send_email(
                 credentials,
                 inputs["to"],
                 inputs["subject"],
                 st.session_state.masked_body,
                 inputs["attachments"],
             )
-            st.success("✅ 마스킹 후 이메일 전송 완료!")
+
+            if success:
+                log_email_send(
+                    credentials,
+                    to=inputs["to"],
+                    subject=inputs["subject"],
+                    body=st.session_state.masked_body,        # 저장도 마스킹 본문
+                    attachments=inputs["attachments"],        # 실제 전송 파일(이름에 masked_ 포함)
+                    scan_summary_df=st.session_state.scan_summary_df,
+                    masked=True,
+                )
+                st.success("✅ 마스킹 후 이메일 전송 완료!")
 
             # 상태 초기화
             st.session_state.confirm_send = False

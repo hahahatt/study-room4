@@ -1,6 +1,18 @@
+# --- add project root to sys.path (must be first) ---
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[2]  # .../study-room4
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+# ----------------------------------------------------
+
 import streamlit as st
 
 st.set_page_config(page_title="내부자 보안 잠금 - 대시보드", layout="wide", page_icon="🔒")
+
+# 홈페이지 로고
+from backend.ui import show_logo
+show_logo(max_width=400, pad=2, compact=True)  # 크키, 여백 조절 가능
 
 # ----- 접근 가드: 로그인 필수 -----
 if not st.session_state.get("authenticated"):
