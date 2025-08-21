@@ -8,8 +8,9 @@ import base64
 import mimetypes
 from io import BytesIO
 
+
 from .gmail_auth import build_gmail_service
-from .email_scanner import scan_email
+from .email_scanner import scan_email, summarize_email
 from .mask_attachments import mask_attachment  # 마스킹 모듈
 
 mimetypes.add_type("text/csv", ".csv")
@@ -138,6 +139,15 @@ def send_email_ui(credentials):
 
         # 본문/제목/첨부 민감정보 탐지 + 본문 마스킹
         warnings, masked_body = scan_email(subject, body, attachments)
+
+        try:
+            summary_df = summarize_email(subject, body, attachments)
+            st.session_state.scan_summary_df = summary_df
+            st.subheader("스캔 요약본")
+            st.dataframe(summary_df, use_container_width=True)
+        except Exception:
+            st.session_state.scan_summary_df = None
+            st.info("ℹ 스캔 요약본을 생성하지 못했습니다.")
 
         if warnings:
             st.warning("⚠️ 민감 정보가 감지되었습니다. 마스킹 후 전송을 원하시면 아래 버튼을 클릭하세요.")
